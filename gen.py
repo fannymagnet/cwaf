@@ -5,7 +5,6 @@ import json
 
 conanfile_content = r'''[requires]
 fmt/6.1.2
-poco/1.9.4
 
 [generators]
 json'''
