@@ -18,8 +18,8 @@ def build(bld):
         target = 'app',
         includes = pkg_mgr.include_dirs,
         stlibpath = pkg_mgr.lib_dirs,
-        stlib = pkg_mgr.stlib,
-        shlib = pkg_mgr.shlib
+        stlib = pkg_mgr.stlibs,
+        shlib = pkg_mgr.shlibs
     )
 
     if bld.env.CC_NAME == 'msvc':

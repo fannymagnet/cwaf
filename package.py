@@ -19,13 +19,31 @@ class Package:
         print('package version:' + self.version)
 
 
+class PackageRepo:
+    def __init__(self) -> None:
+        self.packages = {}
+        self.include_dirs = []
+        self.lib_dirs = []
+        self.stlibs = []
+        self.shlibs = []
+
+    def installPackages(self, packages):
+        pass
+
+
 class PackageManager:
     def __init__(self) -> None:
+        self.package_repos = {}
         self.packages = {}
         self.include_dirs = ['.']
         self.lib_dirs = ['.']
-        self.stlib = []
-        self.shlib = []
+        self.stlibs = []
+        self.shlibs = []
+        self.add_package_repo("conan", ConanRepo)
+
+
+    def add_package_repo(self, name, repo_type):
+        self.package_repos[name] = repo_type()
 
 
     def add_requires(self, *args):
@@ -53,6 +71,39 @@ class PackageManager:
     def addPackages(self, packages):
         for package in packages:
             self.addPackage(package)
+
+
+    def installPackages(self):
+        for k, v in self.packages.items():
+            if k in self.package_repos:
+                repo = self.package_repos[k]
+                repo.installPackages(v)
+                for include_dir in repo.include_dirs:
+                    self.include_dirs.append(include_dir)
+                for lib_dir in repo.lib_dirs:
+                    self.lib_dirs.append(lib_dir)
+                for stlib in repo.stlibs:
+                    self.stlibs.append(stlib)
+                for shlib in repo.shlibs:
+                    self.shlibs.append(shlib)
+            else:
+                print("unsupported packaged manager: " + k)
+                continue
+
+
+class ConanRepo(PackageRepo):
+    def __init__(self) -> None:
+        PackageRepo.__init__(self)
+
+
+    def installPackages(self, packages):
+        # gen conanfile.txt
+        conanfile_content = '[requires]\n'
+        for package in packages:
+            conanfile_content += package.name + '/' + package.version + '\n'
+        conanfile_content += '[generators]\njson'
+        print(conanfile_content)
+        self.installConanPackages(conanfile_content)
 
 
     def installConanPackages(self, conanfile_content):
@@ -84,23 +135,9 @@ class PackageManager:
                 pkg_libs = dep['libs']
                 for pkg_lib in pkg_libs:
                     if options[pkg_lib]['shared'] == 'False':
-                        self.stlib.append(pkg_lib)
+                        self.stlibs.append(pkg_lib)
                     else:
-                        self.shlib.append(pkg_lib)
+                        self.shlibs.append(pkg_lib)
 
         print("install conan packages finished")
 
-
-    def installPackages(self):
-        for k, v in self.packages.items():
-            if k == "conan":
-                # gen conanfile.txt
-                conanfile_content = '[requires]\n'
-                for package in v:
-                    conanfile_content += package.name + '/' + package.version + '\n'
-                conanfile_content += '[generators]\njson'
-                print(conanfile_content)
-                self.installConanPackages(conanfile_content)
-            else:
-                print("unsupported packaged manager: " + k)
-                continue
