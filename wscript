@@ -13,15 +13,13 @@ def configure(conf):
 def build(bld):
     pkg_mgr = package.PackageManager()
     pkg_mgr.add_requires('conan::fmt/6.1.2')
-    # bld.read_stlib('fmt', paths=lib_dirs)
     app = bld.program(
-        source='main.cpp',
-        target='app',
-
-        # use = "fmt", read_stlib can use this
-        includes=pkg_mgr.include_dirs,
-        stlibpath=pkg_mgr.lib_dirs,
-        stlib=['fmt'],
+        source = 'main.cpp',
+        target = 'app',
+        includes = pkg_mgr.include_dirs,
+        stlibpath = pkg_mgr.lib_dirs,
+        stlib = pkg_mgr.stlib,
+        shlib = pkg_mgr.shlib
     )
 
     if bld.env.CC_NAME == 'msvc':

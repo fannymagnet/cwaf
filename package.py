@@ -24,6 +24,8 @@ class PackageManager:
         self.packages = {}
         self.include_dirs = ['.']
         self.lib_dirs = ['.']
+        self.stlib = []
+        self.shlib = []
 
 
     def add_requires(self, *args):
@@ -65,7 +67,10 @@ class PackageManager:
 
         with open("tmp/conanbuildinfo.json") as f:
             data = json.loads(f.read())
-            deps = data["dependencies"]
+
+            options = data['options']
+
+            deps = data['dependencies']
             for dep in deps:
                 print(dep["name"])
                 pkg_include_dirs = dep['include_paths']
@@ -75,6 +80,14 @@ class PackageManager:
                 pkg_lib_dirs = dep['lib_paths']
                 for pkg_lib_dir in pkg_lib_dirs:
                     self.lib_dirs.append(pkg_lib_dir)
+
+                pkg_libs = dep['libs']
+                for pkg_lib in pkg_libs:
+                    if options[pkg_lib]['shared'] == 'False':
+                        self.stlib.append(pkg_lib)
+                    else:
+                        self.shlib.append(pkg_lib)
+
         print("install conan packages finished")
 
 
