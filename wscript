@@ -25,6 +25,9 @@ def add_requires(package):
     cmd = "conan install . --build=missing"
     subprocess.run(cmd)
 
+    global include_dirs
+    global lib_dirs
+
     with open("conanbuildinfo.json") as f:
         data = json.loads(f.read())
         deps = data["dependencies"]
@@ -43,16 +46,21 @@ def options(opt):
     opt.load('compiler_cxx')
 
 def configure(conf):
-    conf.setenv('release')
+    # conf.setenv('release')
     conf.load('compiler_cxx')
 
 def build(bld):
     add_requires('fmt')
-    bld.program(
+    # bld.read_stlib('fmt', paths=lib_dirs)
+    app = bld.program(
         source='main.cpp',
         target='app',
 
+        # use = "fmt", read_stlib can use this
         includes=include_dirs,
-        libpath=lib_dirs,
-        lib=['fmt'],
+        stlibpath=lib_dirs,
+        stlib=['fmt'],
     )
+
+    if bld.env.CC_NAME == 'msvc':
+        app.cxxflags = ['/MD']
