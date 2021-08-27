@@ -1,46 +1,7 @@
 #! /usr/bin/env python
 # encoding: utf-8
 
-import os
-import subprocess
-import json
-
-conanfile_content = r'''[requires]
-fmt/6.1.2
-
-[generators]
-json'''
-
-if not os.path.exists("tmp"):
-    os.makedirs("tmp")
-
-include_dirs = ['.']
-lib_dirs = []
-
-def add_requires(package):
-    with open("tmp/conanfile.txt", 'w') as f: 
-        f.write(conanfile_content)
-
-    os.chdir("tmp")
-    cmd = "conan install . --build=missing"
-    subprocess.run(cmd)
-
-    global include_dirs
-    global lib_dirs
-
-    with open("conanbuildinfo.json") as f:
-        data = json.loads(f.read())
-        deps = data["dependencies"]
-        for dep in deps:
-            print(dep["name"])
-            pkg_include_dirs = dep['include_paths']
-            for pkg_include_dir in pkg_include_dirs:
-                include_dirs.append(pkg_include_dir)
-                
-            pkg_lib_dirs = dep['lib_paths']
-            for pkg_lib_dir in pkg_lib_dirs:
-                lib_dirs.append(pkg_lib_dir)
-    print("finish")
+import package
 
 def options(opt):
     opt.load('compiler_cxx')
@@ -50,15 +11,16 @@ def configure(conf):
     conf.load('compiler_cxx')
 
 def build(bld):
-    add_requires('fmt')
+    pkg_mgr = package.PackageManager()
+    pkg_mgr.add_requires('conan::fmt/6.1.2')
     # bld.read_stlib('fmt', paths=lib_dirs)
     app = bld.program(
         source='main.cpp',
         target='app',
 
         # use = "fmt", read_stlib can use this
-        includes=include_dirs,
-        stlibpath=lib_dirs,
+        includes=pkg_mgr.include_dirs,
+        stlibpath=pkg_mgr.lib_dirs,
         stlib=['fmt'],
     )
 
