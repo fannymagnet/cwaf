@@ -6,6 +6,7 @@ demos/out.txt
 waf
 build
 demos/*/build*
+tmp
 playground/*/build*
 .waf-*
 .waf3-*
@@ -15,7 +16,8 @@ playground/*/build*
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
